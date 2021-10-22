@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net5.0</TargetFramework>
+        <PublishReadyToRun>false</PublishReadyToRun>
+        <TieredCompilation>false</TieredCompilation>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Jypeli.NET" Version="10.*" />
+        <PackageReference Include="Jypeli.FarseerPhysics.NET" Version="1.0.*" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="Content\kentta1.txt">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Content\ohj1Pelitausta.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Content\pelaaja.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+</Project>
+
