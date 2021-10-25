@@ -21,12 +21,14 @@ public class HT : PhysicsGame
         LuoOhjaimet();
 
         Camera.Follow(p1);
-        Camera.ZoomFactor = 1.2;
         Camera.StayInLevel = true;
         Level.Background.Image = LoadImage("ohj1Pelitausta");
     }
 
 
+    /// <summary>
+    /// Aliohjelma, joka luo kentän ja kutsuu kenttätiedostoa
+    /// </summary>
     private void LuoKentta()
     {
         TileMap kentta = TileMap.FromLevelAsset("kentta1.txt");
@@ -51,6 +53,13 @@ public class HT : PhysicsGame
 
     //}
 
+
+    /// <summary>
+    /// Aliohjelma, joka luo pelaajan kentälle
+    /// </summary>
+    /// <param name="paikka">paikka, johon pelaaja luodaan</param>
+    /// <param name="leveys">Pelaajan leveys</param>
+    /// <param name="korkeus">Pelaajan korkeus</param>
     private void LuoPelaaja(Vector paikka, double leveys, double korkeus)
     {
         p1 = new PlatformCharacter(1.2 * leveys, 1.2 * korkeus, Shape.Circle);
@@ -62,6 +71,13 @@ public class HT : PhysicsGame
         Add(p1);
     }
 
+
+    /// <summary>
+    /// Aliohjelma, joka tekee esteitä peliin
+    /// </summary>
+    /// <param name="paikka">esteen paikka</param>
+    /// <param name="leveys">esteeen leveys</param>
+    /// <param name="korkeus">esteen korkeus</param>
     private void Este(Vector paikka, double leveys, double korkeus)
     {
         PhysicsObject este = PhysicsObject.CreateStaticObject(leveys, korkeus, Shape.Rectangle);
@@ -71,6 +87,13 @@ public class HT : PhysicsGame
         Add(este);
     }
 
+
+    /// <summary>
+    /// Aliohjelma, joka luo maaliobjektin
+    /// </summary>
+    /// <param name="paikka">maalin paikka</param>
+    /// <param name="leveys">maalin leveys</param>
+    /// <param name="korkeus">maalin korkeus</param>
     private void Maali(Vector paikka, double leveys, double korkeus)
     {
         PhysicsObject maali = PhysicsObject.CreateStaticObject(leveys, korkeus, Shape.Triangle);
@@ -81,7 +104,9 @@ public class HT : PhysicsGame
     }
 
 
-
+    /// <summary>
+    /// Aliohjelma, joka lisää peliin ohjaimet
+    /// </summary>
     private void LuoOhjaimet()
     {
         Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
@@ -92,11 +117,23 @@ public class HT : PhysicsGame
         Keyboard.Listen(Key.F1, ButtonState.Pressed, Begin, "Aloita uusi peli");
     }
 
+
+    /// <summary>
+    /// Aliohjelma, jolla pelaaja saadaan liikkumaan
+    /// </summary>
+    /// <param name="p1">pelaaja joka liikkuu</param>
+    /// <param name="suunta">pelaajan liikkumissuunta ja -nopeus</param>
     private void Liiku(PlatformCharacter p1, double suunta)
     {
         p1.Walk(suunta);
     }
 
+
+    /// <summary>
+    /// Aliohjelma, jolla pelaaja saadaan hyppäämään
+    /// </summary>
+    /// <param name="p1">pelaaja joka liikkuu</param>
+    /// <param name="nopeus">nopeus, jolla pelaaja hyppää</param>
     private void LiikuYlos(PlatformCharacter p1, double nopeus)
     {
         p1.Jump(nopeus);
