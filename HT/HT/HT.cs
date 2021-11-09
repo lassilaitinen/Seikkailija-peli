@@ -8,8 +8,8 @@ using System.Collections.Generic;
 public class HT : PhysicsGame
 {
     private PlatformCharacter p1;
-
-
+    private IntMeter pistelaskuri;
+    
     public override void Begin()
     {
         ClearGameObjects();
@@ -19,11 +19,23 @@ public class HT : PhysicsGame
 
         LuoKentta();
         LuoOhjaimet();
+        LuoPistelaskuri();
 
         Camera.Follow(p1);
         Camera.StayInLevel = true;
         Level.Background.Image = LoadImage("ohj1Pelitausta");
+
+        string[] vaihtoehdot = { "Aloita peli","Näytä Ohjaimet", "Parhaat pisteet", "Lopeta" };
+        MultiSelectWindow alkuvalikko = new MultiSelectWindow("Pelin alkuvalikko", vaihtoehdot);
+        Add(alkuvalikko);
+
+        //alkuvalikko.AddItemHandler(0, Aloita);
+        alkuvalikko.AddItemHandler(1, ShowControlHelp);
+        //alkuvalikko.AddItemHandler(1, ParhaatPisteet);
+        alkuvalikko.AddItemHandler(3, Exit);
     }
+
+
 
 
     /// <summary>
@@ -33,27 +45,16 @@ public class HT : PhysicsGame
     {
         TileMap kentta = TileMap.FromLevelAsset("kentta1.txt");
         kentta.SetTileMethod('#', Este);
-        //kentta.SetTileMethod('*', Kolikko);
+        kentta.SetTileMethod('*', Keruu);
         kentta.SetTileMethod('S', LuoPelaaja);
         kentta.SetTileMethod('M', Maali);
         kentta.Execute(40, 40);
         Level.CreateBottomBorder();
         Level.CreateLeftBorder();
         Level.CreateRightBorder();
-
-
-        //AddCollisionHandler<PlatformCharacter, PhysicsObject>(p1, Maaliintulo);
-
-
     }
 
-    //void Maaliintulo(PlatformCharacter p1, PhysicsObject maali)
-    //{
-    //MessageDisplay.Add("Voitit pelin!!");
-
-    //}
-
-
+    
     /// <summary>
     /// Aliohjelma, joka luo pelaajan kentälle
     /// </summary>
@@ -101,6 +102,24 @@ public class HT : PhysicsGame
         maali.Color = Color.Yellow;
         maali.Tag = "maali";
         Add(maali);
+        AddCollisionHandler(p1, maali, maaliintulo);
+    }
+
+
+    /// <summary>
+    /// Aliohjelma, joka lisää kerättäviä tavaroita peliin
+    /// </summary>
+    /// <param name="paikka">paikka, johon tavara lisätään</param>
+    /// <param name="leveys">tavaran leveys</param>
+    /// <param name="korkeus">tavaran korkeus</param>
+    private void Keruu(Vector paikka, double leveys, double korkeus)
+    {
+        PhysicsObject keruu = PhysicsObject.CreateStaticObject(leveys, korkeus, Shape.Circle);
+        keruu.Position = paikka;
+        keruu.Color = Color.Red;
+        keruu.Tag = "keruu";
+        Add(keruu);
+        AddCollisionHandler(p1, keruu, Kerays);
     }
 
 
@@ -137,6 +156,58 @@ public class HT : PhysicsGame
     private void LiikuYlos(PlatformCharacter p1, double nopeus)
     {
         p1.Jump(nopeus);
+    }
+
+
+    private void Kerays(PhysicsObject pelaaja, PhysicsObject kohde)
+    {
+        kohde.Destroy();
+        pistelaskuri.Value += 1;
+    }
+
+
+    /// <summary>
+    /// Aliohjelma, jossa määritetään mitä tapahtuu maaliin tultaessa
+    /// </summary>
+    /// <param name="pelaaja">pelaaja joka tulee maaliin</param>
+    /// <param name="maali">maali</param>
+    private void maaliintulo(PhysicsObject pelaaja, PhysicsObject maali)
+    {
+        maali.Destroy();
+        string[] vaihtoehdot = { "Uusi peli", "Näytä Ohjaimet", "Parhaat pisteet", "Lopeta peli" };
+        MultiSelectWindow loppuvalikko = new MultiSelectWindow("Voitit pelin! Keräsit " + pistelaskuri + "pistettä!", vaihtoehdot);
+        PushButton[] nappula = loppuvalikko.Buttons;
+        loppuvalikko.Color = Color.Gold;
+        loppuvalikko.SetButtonColor(Color.Black);
+        loppuvalikko.SetButtonTextColor(Color.Gold);
+        nappula[3].Color = Color.Red;
+        Add(loppuvalikko);
+
+        loppuvalikko.AddItemHandler(0, Begin);
+        loppuvalikko.AddItemHandler(1, ShowControlHelp);
+        //alkuvalikko.AddItemHandler(1, ParhaatPisteet);
+        loppuvalikko.AddItemHandler(3, Exit);
+    }
+
+
+    /// <summary>
+    /// Aliohjelma, jolla luodaan pistelaskuri peliin
+    /// </summary>
+    private void LuoPistelaskuri()
+    {
+        pistelaskuri = new IntMeter(0);
+
+        Label pistenaytto = new Label();
+        pistenaytto.X = Screen.Right - 100;
+        pistenaytto.Y = Screen.Top - 150;
+        pistenaytto.TextColor = Color.Green;
+        pistenaytto.Color = Color.Black;
+        pistenaytto.Title = "Pisteet: ";
+
+        pistenaytto.BindTo(pistelaskuri);
+        Add(pistenaytto);
+        
+
     }
 
 }
