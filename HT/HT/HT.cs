@@ -181,11 +181,11 @@ public class HT : PhysicsGame
         loppuvalikko.SetButtonColor(Color.Black);
         loppuvalikko.SetButtonTextColor(Color.Gold);
         nappula[3].Color = Color.Red;
-        Add(loppuvalikko);
+        Add(loppuvalikko); 
 
         loppuvalikko.AddItemHandler(0, Begin);
         loppuvalikko.AddItemHandler(1, ShowControlHelp);
-        //alkuvalikko.AddItemHandler(1, ParhaatPisteet);
+        ///alkuvalikko.AddItemHandler(1, ParhaatPisteet);
         loppuvalikko.AddItemHandler(3, Exit);
     }
 
