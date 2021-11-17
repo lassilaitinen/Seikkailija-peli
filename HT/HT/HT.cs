@@ -9,17 +9,24 @@ public class HT : PhysicsGame
 {
     private PlatformCharacter p1;
     private IntMeter pistelaskuri;
-    
+    private ScoreList topLista = new ScoreList(10, false, 0);
+    private List<char> kerattavat = new List<char>{ '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H' };
+    private DoubleMeter alaspainlaskuri;
+    private Timer aikalaskuri;
+    private double suunta = 200.0;
+
     public override void Begin()
     {
         ClearGameObjects();
         ClearControls();
+        
 
         Gravity = new Vector(0, -1500.0);
 
         LuoKentta();
         LuoOhjaimet();
         LuoPistelaskuri();
+        LuoAikaLaskuri();
 
         Camera.Follow(p1);
         Camera.StayInLevel = true;
@@ -31,8 +38,10 @@ public class HT : PhysicsGame
 
         //alkuvalikko.AddItemHandler(0, Aloita);
         alkuvalikko.AddItemHandler(1, ShowControlHelp);
-        //alkuvalikko.AddItemHandler(1, ParhaatPisteet);
+        //alkuvalikko.AddItemHandler(2, Maaliintulo);
         alkuvalikko.AddItemHandler(3, Exit);
+
+        topLista = DataStorage.TryLoad<ScoreList>(topLista, "pisteet.xml");
     }
 
 
@@ -45,22 +54,48 @@ public class HT : PhysicsGame
     {
         TileMap kentta = TileMap.FromLevelAsset("kentta1.txt");
         kentta.SetTileMethod('#', Este);
-        kentta.SetTileMethod('*', Keruu);
         kentta.SetTileMethod('S', LuoPelaaja);
         kentta.SetTileMethod('M', Maali);
+        Sotke(kerattavat);
+        List<char> kaytettavat = kerattavat.GetRange(0, 10);
+        int i = 0;
+        while (i < kaytettavat.Count)
+        {
+            kentta.SetTileMethod(kaytettavat[i], Keraaminen);
+            i++;
+        }
+        kentta.SetTileMethod('x', SuperKeraaminen);
         kentta.Execute(40, 40);
         Level.CreateBottomBorder();
         Level.CreateLeftBorder();
         Level.CreateRightBorder();
+
     }
 
-    
+
     /// <summary>
-    /// Aliohjelma, joka luo pelaajan kentälle
+    /// Aliohjelmalla sotketaan kerattavat-listan alkioiden järjestystä
     /// </summary>
-    /// <param name="paikka">paikka, johon pelaaja luodaan</param>
-    /// <param name="leveys">Pelaajan leveys</param>
-    /// <param name="korkeus">Pelaajan korkeus</param>
+    /// <param name="kerattavat">sotkettava lista</param>
+    private static void Sotke(List<char> kerattavat)
+    {
+        Random rand = new Random();
+        for (int viimeisenPaikka = kerattavat.Count - 1; viimeisenPaikka > 0; viimeisenPaikka--)
+        {
+            int arvottuPaikka = rand.Next(viimeisenPaikka + 1);
+            char tmp = kerattavat[arvottuPaikka];
+            kerattavat[arvottuPaikka] = kerattavat[viimeisenPaikka];
+            kerattavat[viimeisenPaikka] = tmp;
+        }
+    }
+
+
+        /// <summary>
+        /// Aliohjelma, joka luo pelaajan kentälle
+        /// </summary>
+        /// <param name="paikka">paikka, johon pelaaja luodaan</param>
+        /// <param name="leveys">Pelaajan leveys</param>
+        /// <param name="korkeus">Pelaajan korkeus</param>
     private void LuoPelaaja(Vector paikka, double leveys, double korkeus)
     {
         p1 = new PlatformCharacter(1.2 * leveys, 1.2 * korkeus, Shape.Circle);
@@ -102,7 +137,7 @@ public class HT : PhysicsGame
         maali.Color = Color.Yellow;
         maali.Tag = "maali";
         Add(maali);
-        AddCollisionHandler(p1, maali, maaliintulo);
+        AddCollisionHandler(p1, maali, Maaliintulo);
     }
 
 
@@ -112,14 +147,26 @@ public class HT : PhysicsGame
     /// <param name="paikka">paikka, johon tavara lisätään</param>
     /// <param name="leveys">tavaran leveys</param>
     /// <param name="korkeus">tavaran korkeus</param>
-    private void Keruu(Vector paikka, double leveys, double korkeus)
+    private void Keraaminen(Vector paikka, double leveys, double korkeus)
     {
-        PhysicsObject keruu = PhysicsObject.CreateStaticObject(leveys, korkeus, Shape.Circle);
-        keruu.Position = paikka;
-        keruu.Color = Color.Red;
-        keruu.Tag = "keruu";
-        Add(keruu);
-        AddCollisionHandler(p1, keruu, Kerays);
+        PhysicsObject kerattava = new PhysicsObject (leveys, korkeus, Shape.Circle);
+        kerattava.Position = paikka;
+        kerattava.Color = Color.Red;
+        kerattava.Tag = "esine";
+        kerattava.Mass = 0.1;
+        Add(kerattava);
+        AddCollisionHandler(p1, kerattava, Kerays);
+    }
+
+    private void SuperKeraaminen(Vector paikka, double leveys, double korkeus)
+    {
+        PhysicsObject SuperKerattava = PhysicsObject.CreateStaticObject(leveys, korkeus, Shape.Circle);
+        SuperKerattava.Position = paikka;
+        SuperKerattava.Color = Color.LightBlue;
+        SuperKerattava.Tag = "Super";
+        SuperKerattava.Mass = 0.1;
+        Add(SuperKerattava);
+        AddCollisionHandler(p1, SuperKerattava, SuperKerays);
     }
 
 
@@ -129,11 +176,12 @@ public class HT : PhysicsGame
     private void LuoOhjaimet()
     {
         Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
-        Keyboard.Listen(Key.Space, ButtonState.Down, LiikuYlos, "Liiku ylös", p1, 100.0);
-        Keyboard.Listen(Key.Right, ButtonState.Down, Liiku, "Liiku oikealle", p1, 200.0);
-        Keyboard.Listen(Key.Left, ButtonState.Down, Liiku, "Liiku vasemmalle", p1, -200.0);
         Keyboard.Listen(Key.Tab, ButtonState.Pressed, ShowControlHelp, "Näytä näppäinohjeet");
         Keyboard.Listen(Key.F1, ButtonState.Pressed, Begin, "Aloita uusi peli");
+        Keyboard.Listen(Key.Space, ButtonState.Down, LiikuYlos, "Liiku ylös", p1, 100.0);
+        Keyboard.Listen(Key.Right, ButtonState.Down, Liiku, "Liiku oikealle", p1, suunta);
+        Keyboard.Listen(Key.Left, ButtonState.Down, Liiku, "Liiku vasemmalle", p1, -suunta);
+        
     }
 
 
@@ -159,6 +207,11 @@ public class HT : PhysicsGame
     }
 
 
+    /// <summary>
+    /// Aliohjelmalla määritetään mitä tapahtuu kun pelaaja kerää kerättävän esineen.
+    /// </summary>
+    /// <param name="pelaaja">pelaaja joka kerää esineen</param>
+    /// <param name="kohde">kerättävä esine</param>
     private void Kerays(PhysicsObject pelaaja, PhysicsObject kohde)
     {
         kohde.Destroy();
@@ -167,26 +220,34 @@ public class HT : PhysicsGame
 
 
     /// <summary>
+    /// Aliohjelmalla määritetään mitä tapahtuu kun pelaaja kerää kerättävän esineen.
+    /// </summary>
+    /// <param name="pelaaja">pelaaja joka kerää superesineen</param>
+    /// <param name="kohde">kerättävä superesine</param>
+    private void SuperKerays(PhysicsObject pelaaja, PhysicsObject kohde)
+    {
+        kohde.Destroy();
+        pistelaskuri.Value += 5;
+    }
+
+
+    /// <summary>
     /// Aliohjelma, jossa määritetään mitä tapahtuu maaliin tultaessa
     /// </summary>
     /// <param name="pelaaja">pelaaja joka tulee maaliin</param>
     /// <param name="maali">maali</param>
-    private void maaliintulo(PhysicsObject pelaaja, PhysicsObject maali)
+    private void Maaliintulo(PhysicsObject pelaaja, PhysicsObject maali)
     {
         maali.Destroy();
-        string[] vaihtoehdot = { "Uusi peli", "Näytä Ohjaimet", "Parhaat pisteet", "Lopeta peli" };
-        MultiSelectWindow loppuvalikko = new MultiSelectWindow("Voitit pelin! Keräsit " + pistelaskuri + "pistettä!", vaihtoehdot);
-        PushButton[] nappula = loppuvalikko.Buttons;
-        loppuvalikko.Color = Color.Gold;
-        loppuvalikko.SetButtonColor(Color.Black);
-        loppuvalikko.SetButtonTextColor(Color.Gold);
-        nappula[3].Color = Color.Red;
-        Add(loppuvalikko); 
-
-        loppuvalikko.AddItemHandler(0, Begin);
-        loppuvalikko.AddItemHandler(1, ShowControlHelp);
-        ///alkuvalikko.AddItemHandler(1, ParhaatPisteet);
-        loppuvalikko.AddItemHandler(3, Exit);
+        HighScoreWindow topIkkuna = new HighScoreWindow(
+                     "Parhaat pisteet",
+                     "Onneksi olkoon, pääsit listalle pisteillä " + pistelaskuri + "! Syötä nimesi:",
+                     topLista, pistelaskuri);
+        topIkkuna.Width = 2000.0;
+        topIkkuna.Color = Color.Gold;
+        topIkkuna.Closed += TallennaPisteet;
+        Loppuvalikko();
+        Add(topIkkuna);
     }
 
 
@@ -206,8 +267,77 @@ public class HT : PhysicsGame
 
         pistenaytto.BindTo(pistelaskuri);
         Add(pistenaytto);
-        
+    }
 
+
+    /// <summary>
+    /// Luodaan peliin aikalaskuri
+    /// </summary>
+    private void LuoAikaLaskuri()
+    {
+        alaspainlaskuri = new DoubleMeter(60);
+
+        aikalaskuri = new Timer();
+        aikalaskuri.Interval = 0.1;
+        aikalaskuri.Timeout += LaskeAlas;
+        aikalaskuri.Start();
+
+        Label aikanaytto = new Label();
+        aikanaytto.X = Screen.Right - 100;
+        aikanaytto.Y = Screen.Top - 130;
+        aikanaytto.Title = "Aikaa jäljellä: ";
+        aikanaytto.TextColor = Color.Green;
+        aikanaytto.Color = Color.Black;
+        aikanaytto.DecimalPlaces = 2;
+        aikanaytto.BindTo(alaspainlaskuri);
+        Add(aikanaytto);
+    }
+
+
+    /// <summary>
+    /// Aliohjelma, jolla luodaan peliin loppuvalikko.
+    /// </summary>
+    private void Loppuvalikko()
+    {
+        string[] vaihtoehdot = { "Uusi peli", "Näytä Ohjaimet", "Seuraava kenttä", "Lopeta peli" };
+        MultiSelectWindow loppuvalikko = new MultiSelectWindow("Voitit pelin! Keräsit " + pistelaskuri + "pistettä !", vaihtoehdot);
+        PushButton[] nappula = loppuvalikko.Buttons;
+        loppuvalikko.Color = Color.Gold;
+        loppuvalikko.SetButtonColor(Color.Black);
+        loppuvalikko.SetButtonTextColor(Color.Gold);
+        nappula[2].Color = Color.Red;
+        nappula[2].TextColor = Color.Black;
+        Add(loppuvalikko);
+
+        loppuvalikko.AddItemHandler(0, Begin);
+        loppuvalikko.AddItemHandler(1, ShowControlHelp);
+        loppuvalikko.AddItemHandler(2, Exit);
+    }
+
+
+    /// <summary>
+    /// Asetetaan aikalaskuri laskemaan alaspäin 60 sekunnista
+    /// </summary>
+    private void LaskeAlas()
+    {
+        alaspainlaskuri.Value -= 0.1;
+
+        if (alaspainlaskuri.Value <= 0)
+        {
+            MessageDisplay.Add("Aika loppui!!");
+            aikalaskuri.Stop();
+            suunta = 0.0;
+            Loppuvalikko();
+        }
+    }
+
+    /// <summary>
+    /// Aliohjelma, joka tallentaa pisteet tiedostoon.
+    /// </summary>
+    /// <param name="sender"></param>
+    private void TallennaPisteet(Window sender)
+    {
+        DataStorage.Save<ScoreList>(topLista, "pisteet.xml");
     }
 
 }
