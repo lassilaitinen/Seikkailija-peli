@@ -2,6 +2,7 @@ using Jypeli;
 using Jypeli.Assets;
 using Jypeli.Controls;
 using Jypeli.Widgets;
+using Jypeli.Effects;
 using System;
 using System.Collections.Generic;
 
@@ -125,7 +126,6 @@ public class HT : PhysicsGame
     {
         p1 = new PlatformCharacter(1.2 * leveys, 1.2 * korkeus, Shape.Circle);
         p1.Position = paikka;
-        p1.Color = Color.Black;
         p1.Mass = 0.1;
         p1.Tag = "pelaaja";
         p1.Image = LoadImage("pelaaja.png");
@@ -195,7 +195,6 @@ public class HT : PhysicsGame
     {
         PhysicsObject SuperKerattava = PhysicsObject.CreateStaticObject(leveys, korkeus, Shape.Circle);
         SuperKerattava.Position = paikka;
-        SuperKerattava.Color = Color.LightBlue;
         SuperKerattava.Tag = "Super";
         SuperKerattava.Image = LoadImage("SuperKerattavanKuva.png");
         Add(SuperKerattava);
@@ -259,6 +258,9 @@ public class HT : PhysicsGame
     /// <param name="kohde">kerättävä superesine</param>
     private void SuperKerays(PhysicsObject pelaaja, PhysicsObject kohde)
     {
+        Explosion rajahdys = new Explosion(150);
+        rajahdys.Position = p1.Position;
+        Add(rajahdys);
         kohde.Destroy();
         pistelaskuri.Value += 5;
     }
@@ -280,7 +282,8 @@ public class HT : PhysicsGame
         topIkkuna.Width = 2000.0;
         topIkkuna.Color = Color.Gold;
         topIkkuna.Closed += TallennaPisteet;
-        Loppuvalikko();
+        string otsikko = "Voitit pelin!Keräsit " + pistelaskuri + "pistettä!";
+        Loppuvalikko(otsikko);
         Add(topIkkuna);
     }
 
@@ -309,7 +312,7 @@ public class HT : PhysicsGame
     /// </summary>
     private void LuoAikaLaskuri()
     {
-        alaspainlaskuri = new DoubleMeter(60);
+        alaspainlaskuri = new DoubleMeter(45);
 
         aikalaskuri = new Timer();
         aikalaskuri.Interval = 0.1;
@@ -330,22 +333,21 @@ public class HT : PhysicsGame
     /// <summary>
     /// Aliohjelma, jolla luodaan peliin loppuvalikko.
     /// </summary>
-    private void Loppuvalikko()
+    private MultiSelectWindow Loppuvalikko(string otsikko)
     {
-        string[] vaihtoehdot = { "Uusi peli", "Alkunäyttöön", "Näytä Ohjaimet", "Lopeta peli" };
-        MultiSelectWindow loppuvalikko = new MultiSelectWindow("Voitit pelin! Keräsit " + pistelaskuri + "pistettä !", vaihtoehdot);
+        string[] vaihtoehdot = { "Uusi peli", "Alkunäyttöön", "Lopeta peli" };
+        MultiSelectWindow loppuvalikko = new MultiSelectWindow(otsikko, vaihtoehdot);
         PushButton[] nappula = loppuvalikko.Buttons;
         loppuvalikko.Color = Color.Gold;
         loppuvalikko.SetButtonColor(Color.Black);
         loppuvalikko.SetButtonTextColor(Color.Gold);
-        nappula[3].Color = Color.Red;
-        nappula[3].TextColor = Color.Black;
-        Add(loppuvalikko);
-
+        nappula[2].Color = Color.Red;
+        nappula[2].TextColor = Color.Black;
+        
         loppuvalikko.AddItemHandler(0, AloitaPeli);
         loppuvalikko.AddItemHandler(1, Begin);
-        loppuvalikko.AddItemHandler(2, ShowControlHelp);
-        loppuvalikko.AddItemHandler(3, Exit);
+        loppuvalikko.AddItemHandler(2, Exit);
+        return loppuvalikko;
     }
 
 
@@ -361,31 +363,14 @@ public class HT : PhysicsGame
             MessageDisplay.Add("Aika loppui!!");
             aikalaskuri.Stop();
             suunta = 0.0;
-            EpaOnnistuminen();
+            Explosion rajahdys = new Explosion(5000);
+            rajahdys.Position = p1.Position;
+            Add(rajahdys);
+            string otsikko = "Hävisit pelin! Et saavuttanut maalia ajoissa!";
+            Loppuvalikko(otsikko);
         }
     }
 
-
-    /// <summary>
-    /// Aliohjelma, joka määrittää mitä tapahtuu jos pelin tavoite ei täyty.
-    /// </summary>
-    private void EpaOnnistuminen()
-    {
-        string[] vaihtoehdot = { "Uusi peli","Alkunäyttöön", "Näytä Ohjaimet", "Lopeta peli" };
-        MultiSelectWindow epaonnistuminen = new MultiSelectWindow("Hävisit pelin! Et saavuttanut maalia ajoissa!", vaihtoehdot);
-        PushButton[] nappula = epaonnistuminen.Buttons;
-        epaonnistuminen.Color = Color.Gold;
-        epaonnistuminen.SetButtonColor(Color.Black);
-        epaonnistuminen.SetButtonTextColor(Color.Gold);
-        nappula[3].Color = Color.Red;
-        nappula[3].TextColor = Color.Black;
-        Add(epaonnistuminen);
-
-        epaonnistuminen.AddItemHandler(0, AloitaPeli);
-        epaonnistuminen.AddItemHandler(1, Begin);
-        epaonnistuminen.AddItemHandler(1, ShowControlHelp);
-        epaonnistuminen.AddItemHandler(2, Exit);
-    }
 
 
     /// <summary>
