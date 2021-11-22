@@ -22,7 +22,7 @@ public class HT : PhysicsGame
         Label ohjeet = new Label("Mitä pelissä pitää tehdä?");
         ohjeet.Y = Level.Bottom + 150;
         Add(ohjeet);
-        Label ohjeet2 = new Label("Kerää mahdollisimman monta punaista palloa ennen ajan loppumista! Bonuspalloista saa enemmän pisteitä!");
+        Label ohjeet2 = new Label("Kerää kolikoita ja löydä maali ennen ajan loppumista! Bonuspalloista saa enemmän pisteitä!");
         ohjeet2.Y = Level.Bottom + 120;
         Add(ohjeet2);
     }
@@ -179,7 +179,6 @@ public class HT : PhysicsGame
         kerattava.Position = paikka;
         kerattava.Color = Color.Red;
         kerattava.Tag = "esine";
-        kerattava.Mass = 0.1;
         kerattava.Image = LoadImage("KerattavanKuva.png");
         Add(kerattava);
         AddCollisionHandler(p1, kerattava, Kerays);
@@ -189,16 +188,15 @@ public class HT : PhysicsGame
     /// <summary>
     /// Luodaan "superkerättävä", josta saa enemmän pisteitä.
     /// </summary>
-    /// <param name="paikka"></param>
-    /// <param name="leveys"></param>
-    /// <param name="korkeus"></param>
+    /// <param name="paikka">esineen paikka</param>
+    /// <param name="leveys">esineen leveys</param>
+    /// <param name="korkeus">esineen korkeus</param>
     private void SuperKeraaminen(Vector paikka, double leveys, double korkeus)
     {
         PhysicsObject SuperKerattava = PhysicsObject.CreateStaticObject(leveys, korkeus, Shape.Circle);
         SuperKerattava.Position = paikka;
         SuperKerattava.Color = Color.LightBlue;
         SuperKerattava.Tag = "Super";
-        SuperKerattava.Mass = 0.1;
         SuperKerattava.Image = LoadImage("SuperKerattavanKuva.png");
         Add(SuperKerattava);
         AddCollisionHandler(p1, SuperKerattava, SuperKerays);
@@ -393,7 +391,7 @@ public class HT : PhysicsGame
     /// <summary>
     /// Aliohjelma, joka tallentaa pisteet tiedostoon.
     /// </summary>
-    /// <param name="sender"></param>
+    /// <param name="sender">lähettää nimen ja pisteet tiedostoon</param>
     private void TallennaPisteet(Window sender)
     {
         DataStorage.Save<ScoreList>(topLista, "pisteet.xml"); 
