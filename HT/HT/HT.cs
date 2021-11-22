@@ -6,6 +6,12 @@ using Jypeli.Effects;
 using System;
 using System.Collections.Generic;
 
+
+/// @author Lassi Laitinen
+/// @version 22.11.2021
+/// <summary>
+/// Tehdään seikkailija-peli
+/// </summary>
 public class HT : PhysicsGame
 {
     private PlatformCharacter p1;
@@ -193,12 +199,12 @@ public class HT : PhysicsGame
     /// <param name="korkeus">esineen korkeus</param>
     private void SuperKeraaminen(Vector paikka, double leveys, double korkeus)
     {
-        PhysicsObject SuperKerattava = PhysicsObject.CreateStaticObject(leveys, korkeus, Shape.Circle);
-        SuperKerattava.Position = paikka;
-        SuperKerattava.Tag = "Super";
-        SuperKerattava.Image = LoadImage("SuperKerattavanKuva.png");
-        Add(SuperKerattava);
-        AddCollisionHandler(p1, SuperKerattava, SuperKerays);
+        PhysicsObject superKerattava = PhysicsObject.CreateStaticObject(leveys, korkeus, Shape.Circle);
+        superKerattava.Position = paikka;
+        superKerattava.Tag = "Super";
+        superKerattava.Image = LoadImage("SuperKerattavanKuva.png");
+        Add(superKerattava);
+        AddCollisionHandler(p1, superKerattava, SuperKerays);
     }
 
 
