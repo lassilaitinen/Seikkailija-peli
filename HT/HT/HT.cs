@@ -17,9 +17,42 @@ public class HT : PhysicsGame
 
     public override void Begin()
     {
+        Alkuvalikko();
+        Level.Background.Image = LoadImage("alkukuva.png");
+        Label ohjeet = new Label("Mitä pelissä pitää tehdä?");
+        ohjeet.Y = Level.Bottom + 150;
+        Add(ohjeet);
+        Label ohjeet2 = new Label("Kerää mahdollisimman monta punaista palloa ennen ajan loppumista! Bonuspalloista saa enemmän pisteitä!");
+        ohjeet2.Y = Level.Bottom + 120;
+        Add(ohjeet2);
+    }
+
+
+    private void Alkuvalikko()
+    {
+        string[] vaihtoehdot = { "Aloita peli", "Lopeta" };
+        MultiSelectWindow alkuvalikko = new MultiSelectWindow("Pelin alkuvalikko", vaihtoehdot);
+        alkuvalikko.Color = Color.Black;
+        PushButton[] nappula = alkuvalikko.Buttons;
+        alkuvalikko.SetButtonColor(Color.Green);
+        alkuvalikko.SetButtonTextColor(Color.Gold);
+        nappula[1].Color = Color.Red;
+        nappula[1].TextColor = Color.Black;
+        Add(alkuvalikko);
+
+        alkuvalikko.AddItemHandler(0, AloitaPeli);
+        alkuvalikko.AddItemHandler(1, Exit);
+    }
+
+
+    /// <summary>
+    /// Aliohjelma, joka aloittaa pelin ja luo painovoiman sekä asettaa kameran.
+    /// </summary>
+    private void AloitaPeli()
+    {
         ClearGameObjects();
         ClearControls();
-        
+
 
         Gravity = new Vector(0, -1500.0);
 
@@ -27,19 +60,11 @@ public class HT : PhysicsGame
         LuoOhjaimet();
         LuoPistelaskuri();
         LuoAikaLaskuri();
+        aikalaskuri.Start();
 
         Camera.Follow(p1);
         Camera.StayInLevel = true;
         Level.Background.Image = LoadImage("ohj1Pelitausta");
-
-        string[] vaihtoehdot = { "Aloita peli","Näytä Ohjaimet", "Parhaat pisteet", "Lopeta" };
-        MultiSelectWindow alkuvalikko = new MultiSelectWindow("Pelin alkuvalikko", vaihtoehdot);
-        Add(alkuvalikko);
-
-        //alkuvalikko.AddItemHandler(0, Aloita);
-        alkuvalikko.AddItemHandler(1, ShowControlHelp);
-        //alkuvalikko.AddItemHandler(2, Maaliintulo);
-        alkuvalikko.AddItemHandler(3, Exit);
 
         topLista = DataStorage.TryLoad<ScoreList>(topLista, "pisteet.xml");
     }
@@ -158,6 +183,13 @@ public class HT : PhysicsGame
         AddCollisionHandler(p1, kerattava, Kerays);
     }
 
+
+    /// <summary>
+    /// Luodaan "superkerättävä", josta saa enemmän pisteitä.
+    /// </summary>
+    /// <param name="paikka"></param>
+    /// <param name="leveys"></param>
+    /// <param name="korkeus"></param>
     private void SuperKeraaminen(Vector paikka, double leveys, double korkeus)
     {
         PhysicsObject SuperKerattava = PhysicsObject.CreateStaticObject(leveys, korkeus, Shape.Circle);
@@ -177,7 +209,7 @@ public class HT : PhysicsGame
     {
         Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
         Keyboard.Listen(Key.Tab, ButtonState.Pressed, ShowControlHelp, "Näytä näppäinohjeet");
-        Keyboard.Listen(Key.F1, ButtonState.Pressed, Begin, "Aloita uusi peli");
+        Keyboard.Listen(Key.F1, ButtonState.Pressed, AloitaPeli, "Aloita uusi peli");
         Keyboard.Listen(Key.Space, ButtonState.Down, LiikuYlos, "Liiku ylös", p1, 100.0);
         Keyboard.Listen(Key.Right, ButtonState.Down, Liiku, "Liiku oikealle", p1, suunta);
         Keyboard.Listen(Key.Left, ButtonState.Down, Liiku, "Liiku vasemmalle", p1, -suunta);
@@ -239,6 +271,7 @@ public class HT : PhysicsGame
     private void Maaliintulo(PhysicsObject pelaaja, PhysicsObject maali)
     {
         maali.Destroy();
+        aikalaskuri.Stop();
         HighScoreWindow topIkkuna = new HighScoreWindow(
                      "Parhaat pisteet",
                      "Onneksi olkoon, pääsit listalle pisteillä " + pistelaskuri + "! Syötä nimesi:",
@@ -248,6 +281,7 @@ public class HT : PhysicsGame
         topIkkuna.Closed += TallennaPisteet;
         Loppuvalikko();
         Add(topIkkuna);
+        
     }
 
 
@@ -280,7 +314,6 @@ public class HT : PhysicsGame
         aikalaskuri = new Timer();
         aikalaskuri.Interval = 0.1;
         aikalaskuri.Timeout += LaskeAlas;
-        aikalaskuri.Start();
 
         Label aikanaytto = new Label();
         aikanaytto.X = Screen.Right - 100;
@@ -299,19 +332,20 @@ public class HT : PhysicsGame
     /// </summary>
     private void Loppuvalikko()
     {
-        string[] vaihtoehdot = { "Uusi peli", "Näytä Ohjaimet", "Seuraava kenttä", "Lopeta peli" };
+        string[] vaihtoehdot = { "Uusi peli", "Alkunäyttöön", "Näytä Ohjaimet", "Lopeta peli" };
         MultiSelectWindow loppuvalikko = new MultiSelectWindow("Voitit pelin! Keräsit " + pistelaskuri + "pistettä !", vaihtoehdot);
         PushButton[] nappula = loppuvalikko.Buttons;
         loppuvalikko.Color = Color.Gold;
         loppuvalikko.SetButtonColor(Color.Black);
         loppuvalikko.SetButtonTextColor(Color.Gold);
-        nappula[2].Color = Color.Red;
-        nappula[2].TextColor = Color.Black;
+        nappula[3].Color = Color.Red;
+        nappula[3].TextColor = Color.Black;
         Add(loppuvalikko);
 
-        loppuvalikko.AddItemHandler(0, Begin);
-        loppuvalikko.AddItemHandler(1, ShowControlHelp);
-        loppuvalikko.AddItemHandler(2, Exit);
+        loppuvalikko.AddItemHandler(0, AloitaPeli);
+        loppuvalikko.AddItemHandler(1, Begin);
+        loppuvalikko.AddItemHandler(2, ShowControlHelp);
+        loppuvalikko.AddItemHandler(3, Exit);
     }
 
 
@@ -327,8 +361,30 @@ public class HT : PhysicsGame
             MessageDisplay.Add("Aika loppui!!");
             aikalaskuri.Stop();
             suunta = 0.0;
-            Loppuvalikko();
+            EpaOnnistuminen();
         }
+    }
+
+
+    /// <summary>
+    /// Aliohjelma, joka määrittää mitä tapahtuu jos pelin tavoite ei täyty.
+    /// </summary>
+    private void EpaOnnistuminen()
+    {
+        string[] vaihtoehdot = { "Uusi peli","Alkunäyttöön", "Näytä Ohjaimet", "Lopeta peli" };
+        MultiSelectWindow epaonnistuminen = new MultiSelectWindow("Hävisit pelin! Et saavuttanut maalia ajoissa!", vaihtoehdot);
+        PushButton[] nappula = epaonnistuminen.Buttons;
+        epaonnistuminen.Color = Color.Gold;
+        epaonnistuminen.SetButtonColor(Color.Black);
+        epaonnistuminen.SetButtonTextColor(Color.Gold);
+        nappula[3].Color = Color.Red;
+        nappula[3].TextColor = Color.Black;
+        Add(epaonnistuminen);
+
+        epaonnistuminen.AddItemHandler(0, AloitaPeli);
+        epaonnistuminen.AddItemHandler(1, Begin);
+        epaonnistuminen.AddItemHandler(1, ShowControlHelp);
+        epaonnistuminen.AddItemHandler(2, Exit);
     }
 
     /// <summary>
@@ -337,7 +393,7 @@ public class HT : PhysicsGame
     /// <param name="sender"></param>
     private void TallennaPisteet(Window sender)
     {
-        DataStorage.Save<ScoreList>(topLista, "pisteet.xml");
+        DataStorage.Save<ScoreList>(topLista, "pisteet.xml"); 
     }
 
 }
