@@ -258,8 +258,8 @@ public class HT : PhysicsGame
     /// <param name="kohde">kerättävä superesine</param>
     private void SuperKerays(PhysicsObject pelaaja, PhysicsObject kohde)
     {
-        Explosion rajahdys = new Explosion(150);
-        rajahdys.Position = p1.Position;
+        Explosion rajahdys = new Explosion(20);
+        rajahdys.Position = kohde.Position;
         Add(rajahdys);
         kohde.Destroy();
         pistelaskuri.Value += 5;
@@ -283,7 +283,7 @@ public class HT : PhysicsGame
         topIkkuna.Color = Color.Gold;
         topIkkuna.Closed += TallennaPisteet;
         string otsikko = "Voitit pelin!Keräsit " + pistelaskuri + "pistettä!";
-        Loppuvalikko(otsikko);
+        Add(Loppuvalikko(otsikko));
         Add(topIkkuna);
     }
 
@@ -331,8 +331,10 @@ public class HT : PhysicsGame
 
 
     /// <summary>
-    /// Aliohjelma, jolla luodaan peliin loppuvalikko.
+    /// Aliohjelma joka luo peliin loppuvalikon
     /// </summary>
+    /// <param name="otsikko">valikon otsikko</param>
+    /// <returns>loppuvalikon</returns>
     private MultiSelectWindow Loppuvalikko(string otsikko)
     {
         string[] vaihtoehdot = { "Uusi peli", "Alkunäyttöön", "Lopeta peli" };
@@ -360,17 +362,36 @@ public class HT : PhysicsGame
 
         if (alaspainlaskuri.Value <= 0)
         {
-            MessageDisplay.Add("Aika loppui!!");
             aikalaskuri.Stop();
             suunta = 0.0;
-            Explosion rajahdys = new Explosion(5000);
+            Explosion rajahdys = new Explosion(500);
             rajahdys.Position = p1.Position;
             Add(rajahdys);
-            string otsikko = "Hävisit pelin! Et saavuttanut maalia ajoissa!";
-            Loppuvalikko(otsikko);
+            Huonoloppuvalikko();
         }
     }
 
+
+    /// <summary>
+    /// Aliohjelma joka luo loppuvalikon epäonnistuneen suorituksen jälkeen
+    /// </summary>
+    /// <param name="otsikko">valikon otsikko</param>
+    private void Huonoloppuvalikko()
+    {
+        string[] vaihtoehdot = { "Uusi peli", "Alkunäyttöön", "Lopeta peli" };
+        MultiSelectWindow huonoloppuvalikko = new MultiSelectWindow("Hävisit pelin! Et saavuttanut maalia ajoissa!", vaihtoehdot);
+        PushButton[] nappula = huonoloppuvalikko.Buttons;
+        huonoloppuvalikko.Color = Color.Gray;
+        huonoloppuvalikko.SetButtonColor(Color.Black);
+        huonoloppuvalikko.SetButtonTextColor(Color.Red);
+        nappula[2].Color = Color.Red;
+        nappula[2].TextColor = Color.Black;
+
+        huonoloppuvalikko.AddItemHandler(0, AloitaPeli);
+        huonoloppuvalikko.AddItemHandler(1, Begin);
+        huonoloppuvalikko.AddItemHandler(2, Exit);
+        Add(huonoloppuvalikko);
+    }
 
 
     /// <summary>
