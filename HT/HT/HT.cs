@@ -28,6 +28,9 @@ public class HT : PhysicsGame
     }
 
 
+    /// <summary>
+    /// Aliohjelma, joka lisää peliin alkunäytön alkuvalikon
+    /// </summary>
     private void Alkuvalikko()
     {
         string[] vaihtoehdot = { "Aloita peli", "Lopeta" };
@@ -53,7 +56,6 @@ public class HT : PhysicsGame
         ClearGameObjects();
         ClearControls();
 
-
         Gravity = new Vector(0, -1500.0);
 
         LuoKentta();
@@ -68,8 +70,6 @@ public class HT : PhysicsGame
 
         topLista = DataStorage.TryLoad<ScoreList>(topLista, "pisteet.xml");
     }
-
-
 
 
     /// <summary>
@@ -115,12 +115,12 @@ public class HT : PhysicsGame
     }
 
 
-        /// <summary>
-        /// Aliohjelma, joka luo pelaajan kentälle
-        /// </summary>
-        /// <param name="paikka">paikka, johon pelaaja luodaan</param>
-        /// <param name="leveys">Pelaajan leveys</param>
-        /// <param name="korkeus">Pelaajan korkeus</param>
+    /// <summary>
+    /// Aliohjelma, joka luo pelaajan kentälle
+    /// </summary>
+    /// <param name="paikka">paikka, johon pelaaja luodaan</param>
+    /// <param name="leveys">Pelaajan leveys</param>
+    /// <param name="korkeus">Pelaajan korkeus</param>
     private void LuoPelaaja(Vector paikka, double leveys, double korkeus)
     {
         p1 = new PlatformCharacter(1.2 * leveys, 1.2 * korkeus, Shape.Circle);
@@ -161,6 +161,7 @@ public class HT : PhysicsGame
         maali.Position = paikka;
         maali.Color = Color.Yellow;
         maali.Tag = "maali";
+        maali.Image = LoadImage("MaalinKuva.png");
         Add(maali);
         AddCollisionHandler(p1, maali, Maaliintulo);
     }
@@ -174,11 +175,12 @@ public class HT : PhysicsGame
     /// <param name="korkeus">tavaran korkeus</param>
     private void Keraaminen(Vector paikka, double leveys, double korkeus)
     {
-        PhysicsObject kerattava = new PhysicsObject (leveys, korkeus, Shape.Circle);
+        PhysicsObject kerattava = new PhysicsObject (0.5*leveys, 0.5*korkeus, Shape.Circle);
         kerattava.Position = paikka;
         kerattava.Color = Color.Red;
         kerattava.Tag = "esine";
         kerattava.Mass = 0.1;
+        kerattava.Image = LoadImage("KerattavanKuva.png");
         Add(kerattava);
         AddCollisionHandler(p1, kerattava, Kerays);
     }
@@ -197,6 +199,7 @@ public class HT : PhysicsGame
         SuperKerattava.Color = Color.LightBlue;
         SuperKerattava.Tag = "Super";
         SuperKerattava.Mass = 0.1;
+        SuperKerattava.Image = LoadImage("SuperKerattavanKuva.png");
         Add(SuperKerattava);
         AddCollisionHandler(p1, SuperKerattava, SuperKerays);
     }
@@ -281,7 +284,6 @@ public class HT : PhysicsGame
         topIkkuna.Closed += TallennaPisteet;
         Loppuvalikko();
         Add(topIkkuna);
-        
     }
 
 
@@ -386,6 +388,7 @@ public class HT : PhysicsGame
         epaonnistuminen.AddItemHandler(1, ShowControlHelp);
         epaonnistuminen.AddItemHandler(2, Exit);
     }
+
 
     /// <summary>
     /// Aliohjelma, joka tallentaa pisteet tiedostoon.
